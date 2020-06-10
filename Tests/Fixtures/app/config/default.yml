@@ -1,8 +1,8 @@
 imports:
-    - { resource: older_versions_config.yml }
+    - { resource: base_config.yml }
 
 framework:
     translator:
         fallbacks: ['en']
         paths:
-            - "%kernel.root_dir%/Infrastructure/Ui/Translations"
+            - "%kernel.project_dir%/app/Infrastructure/Ui/Translations"
