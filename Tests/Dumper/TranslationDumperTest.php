@@ -3,8 +3,10 @@
 namespace Bazinga\Bundle\JsTranslationBundle\Tests\Dumper;
 
 use Bazinga\Bundle\JsTranslationBundle\Dumper\TranslationDumper;
+use Bazinga\Bundle\JsTranslationBundle\Finder\TranslationFinder;
 use Bazinga\Bundle\JsTranslationBundle\Tests\WebTestCase;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Translation\Loader\YamlFileLoader;
 
 /**
  * @author Adrien Russo <adrien.russo.qc@gmail.com>
@@ -408,5 +410,46 @@ JSON;
         $this->assertEquals(self::JSON_FR_MERGED_TRANSLATIONS, file_get_contents($this->target . '/translations/fr.json'));
 
         $this->assertEquals(self::JSON_CONFIG, file_get_contents($this->target . '/translations/config.json'));
+    }
+
+    /**
+     * A domain only defined in ICU format (no "bar.fr.yml" next to "bar+intl-icu.fr.yml")
+     * must be dumped too, under its cleaned domain name.
+     */
+    public function testDumpPerDomainWithIcuOnlyDomain()
+    {
+        $dumper = new TranslationDumper(
+            $this->getContainer()->get('test.service_container')->get('twig'),
+            new TranslationFinder(array(
+                'fr' => array(__DIR__ . '/../Fixtures/icu-only/bar+intl-icu.fr.yml'),
+            )),
+            $this->filesystem,
+            'en',
+            'messages'
+        );
+        $dumper->addLoader('yml', new YamlFileLoader());
+
+        $dumper->dump($this->target);
+
+        $this->assertFileNotExists($this->target . '/translations/bar+intl-icu/fr.js');
+
+        // The JS dump escapes the "+" and "-" of the domain name as unicode sequences
+        $escapedDomain = 'bar' . '\\' . 'u002Bintl' . '\\' . 'u002Dicu';
+        $this->assertEquals(<<<JS
+(function (t) {
+// fr
+t.add("hello_name", "bonjour {name} !", "$escapedDomain", "fr");
+})(Translator);
+
+JS
+            , file_get_contents($this->target . '/translations/bar/fr.js'));
+
+        $this->assertEquals(<<<JSON
+{
+    "translations": {"fr":{"bar+intl-icu":{"hello_name":"bonjour {name} !"}}}
+}
+
+JSON
+            , file_get_contents($this->target . '/translations/bar/fr.json'));
     }
 }

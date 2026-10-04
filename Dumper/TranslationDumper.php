@@ -187,7 +187,7 @@ class TranslationDumper
             foreach ($domains as $domain => $translations) {
 
                 $cleanedDomain = Util::cleanDomain($domain);
-                if ($domain !== $cleanedDomain && !in_array($cleanedDomain, $domains, true)) {
+                if ($domain !== $cleanedDomain && array_key_exists($cleanedDomain, $domains)) {
                     // e.g.: skip "messages+intl-icu" if "messages" exists. They will get merged after.
                     continue;
                 }
@@ -203,7 +203,7 @@ class TranslationDumper
                     $file = sprintf('%s/%s',
                         $target,
                         strtr($pattern, array(
-                            '{domain}'  => sprintf('%s/%s', $domain, $locale),
+                            '{domain}'  => sprintf('%s/%s', $cleanedDomain, $locale),
                             '{_format}' => $format
                         ))
                     );
