@@ -79,6 +79,10 @@ class TranslationDumper
         $this->filesystem     = $filesystem;
         $this->localeFallback = $localeFallback;
         $this->defaultDomain  = $defaultDomain;
+        // Add fallback locale to active locales if missing
+        if ($activeLocales && !in_array($localeFallback, $activeLocales)) {
+            array_push($activeLocales, $localeFallback);
+        }
         $this->activeLocales  = $activeLocales;
         $this->activeDomains  = $activeDomains;
     }
@@ -118,13 +122,13 @@ class TranslationDumper
      * @param string $target Target directory.
      * @param string $pattern route path
      * @param string[] $formats Formats to generate.
-     * @param \stdClass $merge Merge options.
+     * @param \stdClass|null $merge Merge options.
      */
     public function dump(
-        $target = 'web/js',
+        $target = 'public/js',
         $pattern = self::DEFAULT_TRANSLATION_PATTERN,
         array $formats = array(),
-        \stdClass $merge = null
+        ?\stdClass $merge = null
     ) {
         $availableFormats  = array('js', 'json');
 
