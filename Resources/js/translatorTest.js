@@ -401,3 +401,36 @@ QUnit.module('ICU MessageFormat with sub-locale fallback (nl_NL -> nl -> en)', h
         assert.strictEqual(Translator.trans('apples', { count: 3 }, 'messages'), '3 apples');
     });
 });
+
+QUnit.module('Locale fallback without French (de_DE -> de -> en)', hooks => {
+    hooks.beforeEach(() => {
+        Translator.reset();
+        Translator.locale = 'de_DE';
+        Translator.fallback = 'en';
+        // The country catalogue is loaded, but does not contain the tested keys
+        Translator.add('other', 'Andere', 'messages', 'de_DE');
+    });
+
+    QUnit.test('should prefer the parent locale over French', assert => {
+        Translator.add('role', 'Eltern', 'messages', 'de');
+        Translator.add('role', 'parent', 'messages', 'fr');
+
+        assert.strictEqual(Translator.trans('role', {}, 'messages'), 'Eltern');
+    });
+
+    QUnit.test('should prefer the fallback locale over French', assert => {
+        Translator.add('role', 'parent', 'messages', 'en');
+        Translator.add('role', 'parent FR', 'messages', 'fr');
+
+        assert.strictEqual(Translator.trans('role', {}, 'messages'), 'parent');
+    });
+
+    QUnit.test('should not fall back to French', assert => {
+        Translator.add('role', 'parent', 'messages', 'fr');
+        Translator.add('hello_name', 'Bonjour {name} !', 'messages+intl-icu', 'fr');
+
+        assert.strictEqual(Translator.trans('role', {}, 'messages'), 'role');
+        assert.strictEqual(Translator.trans('role'), 'role');
+        assert.strictEqual(Translator.trans('hello_name', { name: 'Jan' }, 'messages'), 'hello_name');
+    });
+});

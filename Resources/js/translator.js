@@ -290,9 +290,7 @@
             for (var i = 0; i < _domains.length; i++) {
                 if (has_message(_locale, _domains[i], id) ||
                     has_message(nationalLocaleFallback, _domains[i], id) ||
-                    has_message(localeFallback, _domains[i], id) ||
-                    has_message('fr', _domains[i], id)
-                ) {
+                    has_message(localeFallback, _domains[i], id)) {
                     _domain = _domains[i].replace(INTL_DOMAIN_SUFFIX, '');
 
                     break;
@@ -307,10 +305,6 @@
 
         if (has_message(_locale, _domain, id)) {
             return _messages[_locale][_domain][id];
-        }
-
-        if (has_message('fr', _domain, id)) {
-            return _messages['fr'][_domain][id];
         }
 
         var _length, _parts, _last, _lastLength;
